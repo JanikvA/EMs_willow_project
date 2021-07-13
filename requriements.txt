@@ -1,0 +1,7 @@
+seaborn
+pandas
+dtale
+pandas-profiling
+ipykernel
+scipy
+black
