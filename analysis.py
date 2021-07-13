@@ -66,6 +66,7 @@ def make_scatter_plot(data):
             data[data["year"].isin(years)],
             hue="soiltype",
             diag_kws={"common_norm": False},
+            plot_kws={"alpha": 0.3},
         )
         pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
         plt.gcf().suptitle("+".join(years))
@@ -77,6 +78,7 @@ def make_scatter_plot(data):
                 data[(data["year"].isin(years)) & (data["soiltype"] == s_type)],
                 hue="plot_id",
                 diag_kws={"common_norm": False},
+                plot_kws={"alpha": 0.3},
             )
             pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
             plt.gcf().suptitle("+".join(years))
