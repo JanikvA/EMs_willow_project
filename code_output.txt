@@ -1,0 +1,15 @@
+Comparing between 2020 and 2021 - sand - Height - Mann Whitney U test p_value = 0.008166550980875794
+Comparing between 2020 and 2021 - sand - Diameter - Mann Whitney U test p_value = 0.18694572145410715
+Comparing between 2020 and 2021 - sand - Height/Diameter - Mann Whitney U test p_value = 7.28940753132304e-05
+Comparing between 2020 and 2021 - loam - Height - Mann Whitney U test p_value = 0.0033591107276712087
+Comparing between 2020 and 2021 - loam - Diameter - Mann Whitney U test p_value = 0.05052522453847671
+Comparing between 2020 and 2021 - loam - Height/Diameter - Mann Whitney U test p_value = 0.09302433469090376
+Comparing between sand and loam - 2020 - Height - Mann Whitney U test p_value = 5.532793701648229e-06
+Comparing between sand and loam - 2020 - Diameter - Mann Whitney U test p_value = 0.0065487103564704306
+Comparing between sand and loam - 2020 - Height/Diameter - Mann Whitney U test p_value = 2.616732894856505e-07
+Comparing between sand and loam - 2021 - Height - Mann Whitney U test p_value = 1.185573396836171e-06
+Comparing between sand and loam - 2021 - Diameter - Mann Whitney U test p_value = 0.00019601883354373247
+Comparing between sand and loam - 2021 - Height/Diameter - Mann Whitney U test p_value = 9.161697413569287e-06
+Comparing between sand and loam - 2020+2021 - Height - Mann Whitney U test p_value = 6.029517327018468e-11
+Comparing between sand and loam - 2020+2021 - Diameter - Mann Whitney U test p_value = 6.321186450642481e-06
+Comparing between sand and loam - 2020+2021 - Height/Diameter - Mann Whitney U test p_value = 1.554806312984227e-11
