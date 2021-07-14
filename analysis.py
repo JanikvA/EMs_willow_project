@@ -62,11 +62,14 @@ def read_data():
 def make_scatter_plot(data):
     for years in [["2020"], ["2021"], ["2020", "2021"]]:
 
+        ordered = list(data[data["year"].isin(years)]["soiltype"].unique())
+        ordered.sort(key=lambda x: (x[:-1], x[-1]))
         pp = sns.pairplot(
             data[data["year"].isin(years)],
             hue="soiltype",
             diag_kws={"common_norm": False},
             plot_kws={"alpha": 0.3},
+            hue_order=ordered,
         )
         pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
         plt.gcf().suptitle("+".join(years))
@@ -74,11 +77,18 @@ def make_scatter_plot(data):
         plt.close("all")
 
         for s_type in ["sand", "loam"]:
+            ordered = list(
+                data[(data["year"].isin(years)) & (data["soiltype"] == s_type)][
+                    "plot_id"
+                ].unique()
+            )
+            ordered.sort(key=lambda x: (x[:-1], x[-1]))
             pp = sns.pairplot(
                 data[(data["year"].isin(years)) & (data["soiltype"] == s_type)],
                 hue="plot_id",
                 diag_kws={"common_norm": False},
                 plot_kws={"alpha": 0.3},
+                hue_order=ordered,
             )
             pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
             plt.gcf().suptitle("+".join(years))
@@ -91,7 +101,7 @@ def make_box_plots(data):
         for years in [["2020"], ["2021"], ["2020", "2021"]]:
             for x_var in ["soiltype", "plot_id"]:
                 ordered = list(data[x_var].unique())
-                ordered.sort(key=lambda x: x[:-2])
+                ordered.sort(key=lambda x: (x[:-1], x[-1]))
                 ax = sns.boxplot(
                     x=x_var,
                     y=variable,
@@ -100,7 +110,7 @@ def make_box_plots(data):
                 )
                 ax.set_title("+".join(years))
                 plt.savefig(
-                    f"plots/{x_var}_{'_'.join(years)}_{variable.replace('/','Over')}.png"
+                    f"plots/boxplot_{x_var}_{'_'.join(years)}_{variable.replace('/','Over')}.png"
                 )
                 plt.close("all")
 
@@ -141,15 +151,19 @@ def mannwhitneyu_test(data):
             for plot in tmp_datas["plot_id"].unique():
                 for variable in ["Height", "Diameter", "Height/Diameter"]:
                     u_value, p_value = mannwhitneyu(
-                        tmp_datas[variable],
+                        tmp_datas[tmp_datas["plot_id"] != plot][variable],
                         tmp_datas[tmp_datas["plot_id"] == plot][variable],
                     )
                     p_values.append(p_value)
+                    if p_value < 0.05:
+                        print(
+                            f"p-value for {years}-{plot}-{variable} M-W-U test is below 0.05! ({p_value=:.1e})"
+                        )
     ax = sns.histplot(p_values, bins=np.linspace(0, 1, 21))
     ax.set_xlabel("p-value")
     ax.set_ylabel("Count of plot measurements")
     ax.set_title("Mann Whiteny U test")
-    plt.vlines([0.05], ymin=0, ymax=30, colors="r", label="0.05")
+    plt.vlines([0.05], ymin=0, ymax=8, colors="r", label="0.05")
     plt.savefig("plots/p_values_mann_whitney_dist.png")
     plt.close("all")
 
@@ -162,7 +176,7 @@ def mannwhitneyu_test(data):
                 tmp_data[tmp_data["year"] == "2021"][variable],
             )
             print(
-                f"Comparing between 2020 and 2021 - {s_type} - {variable} - Mann Whitney U test p_value = {p_value}"
+                f"Comparing between 2020 and 2021 - {s_type} - {variable} - Mann Whitney U test {p_value=:.1e}"
             )
 
     # checking between soiltypes
@@ -174,7 +188,7 @@ def mannwhitneyu_test(data):
                 tmp_datay[tmp_datay["soiltype"] == "sand"][variable],
             )
             print(
-                f"Comparing between sand and loam - {'+'.join(years)} - {variable} - Mann Whitney U test p_value = {p_value}"
+                f"Comparing between sand and loam - {'+'.join(years)} - {variable} - Mann Whitney U test {p_value=:.1e}"
             )
 
 
