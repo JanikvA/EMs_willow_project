@@ -129,11 +129,25 @@ def make_p_value_norm_dist_plot(data):
     plt.savefig("plots/p_values_norm_dist.png")
     plt.close("all")
 
+def single_pie_chart(data, years, prefix):
+    ax=data.value_counts().plot(kind="pie", autopct=lambda val: int(np.round(val/100.*data.value_counts().sum(),0)), ylabel="")
+    ax.set_title("+".join(years))
+    plt.savefig(f"plots/pie_{prefix}_{'_'.join(years)}.png")
+    plt.close("all")
+
+def make_pie_charts(data):
+    for years in [["2020"], ["2021"], ["2020", "2021"]]:
+        year_data = data[data["year"].isin(years)]
+        single_pie_chart(year_data["soiltype"], years, "soiltype_"+"_".join(years))
+        for s_type in ["loam", "sand"]:
+            single_pie_chart(year_data[year_data["soiltype"]==s_type]["plot_id"], years, f"{s_type}_plot_id_"+"_".join(years))
+
 
 def make_plots(data):
-    make_box_plots(data)
-    make_p_value_norm_dist_plot(data)
-    make_scatter_plots(data)
+    make_pie_charts(data)
+    # make_box_plots(data)
+    # make_p_value_norm_dist_plot(data)
+    # make_scatter_plots(data)
 
 
 def mannwhitneyu_test(data):
