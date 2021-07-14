@@ -77,14 +77,11 @@ def make_scatter_plot(data):
         plt.close("all")
 
         for s_type in ["sand", "loam"]:
-            ordered = list(
-                data[(data["year"].isin(years)) & (data["soiltype"] == s_type)][
-                    "plot_id"
-                ].unique()
-            )
+            soil_data=data[(data["year"].isin(years)) & (data["soiltype"] == s_type)]
+            ordered = list(soil_data["plot_id"].unique())
             ordered.sort(key=lambda x: (x[:-1], x[-1]))
             pp = sns.pairplot(
-                data[(data["year"].isin(years)) & (data["soiltype"] == s_type)],
+                soil_data,
                 hue="plot_id",
                 diag_kws={"common_norm": False},
                 plot_kws={"alpha": 0.3},
@@ -95,6 +92,20 @@ def make_scatter_plot(data):
             plt.savefig(f"plots/{s_type}_plot_scatter_matrix_{'_'.join(years)}.png")
             plt.close("all")
 
+
+            ordered = list(soil_data["Clone"].unique())
+            ordered.sort(key=lambda x: (x[:-1], x[-1]))
+            pp = sns.pairplot(
+                soil_data,
+                hue="Clone",
+                diag_kws={"common_norm": False},
+                plot_kws={"alpha": 0.3},
+                hue_order=ordered,
+            )
+            pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
+            plt.gcf().suptitle("+".join(years))
+            plt.savefig(f"plots/{s_type}_clone_scatter_matrix_{'_'.join(years)}.png")
+            plt.close("all")
 
 def make_box_plots(data):
     for variable in ["Height", "Diameter", "Height/Diameter"]:
