@@ -3,6 +3,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import glob
+import os
 from scipy.stats import mannwhitneyu, shapiro
 
 
@@ -176,6 +177,7 @@ def make_plots(data):
 
 
 def mannwhitneyu_test(data):
+    print("# Mann-Whitney-U test #")
     # checking plots
     p_values = []
     for years in [["2020"], ["2021"]]:
@@ -226,10 +228,53 @@ def mannwhitneyu_test(data):
             )
 
 
+def compile_tex(tex_body):
+    with open("plots/tables.tex", "w") as tmp:
+        tmp.write("\\documentclass[11pt]{article}\n")
+        tmp.write("\\usepackage{booktabs}\n")
+        tmp.write("\\begin{document}\n")
+        tmp.write(tex_body)
+        tmp.write("\\end{document}\n")
+    os.system("pdflatex -output-directory=plots plots/tables.tex")
+    os.system("rm plots/tables.aux plots/tables.log")
+
+def calc_differences(data):
+    variables=["Height", "Diameter", "Height/Diameter"]
+    soil_types=["loam", "sand"]
+    index=pd.MultiIndex.from_product([variables, soil_types], names=["Variable", "Soil"])
+    mi_data=[]
+    for variable in variables:
+        data20=data[data["year"]=="2020"]
+        data21=data[data["year"]=="2021"]
+        for s_type in soil_types:
+            val20=data20[data20["soiltype"]==s_type][variable]
+            val21=data21[data21["soiltype"]==s_type][variable]
+            u_value, p_value = mannwhitneyu(val20, val21)
+            tmp_data=[f"{val20.median():.1f}", f"{val21.median():.1f}", f"{val21.median()/val20.median()-1:+.1%}", f"{p_value:.1e}"]
+            mi_data.append(tmp_data)
+    year_comp_df=pd.DataFrame(mi_data, index=index, columns=["2020","2021","Change", "M-W-U p-value"])
+
+    variables=["Height", "Diameter", "Height/Diameter"]
+    years_list=[["2020"], ["2021"], ["2020", "2021"]]
+    index=pd.MultiIndex.from_product([variables, ["+".join(y) for y in years_list]], names=["Variable", "Years"])
+    mi_data=[]
+    for variable in variables:
+        for years in years_list:
+            tmp_datay = data[data["year"].isin(years)]
+            val_loam=tmp_datay[tmp_datay["soiltype"]=="loam"][variable]
+            val_sand=tmp_datay[tmp_datay["soiltype"]=="sand"][variable]
+            u_value, p_value = mannwhitneyu(val_sand, val_loam)
+            tmp_data=[f"{val_sand.median():.1f}", f"{val_loam.median():.1f}", f"{val_loam.median()/val_sand.median()-1:+.1%}", f"{p_value:.1e}"]
+            mi_data.append(tmp_data)
+    soil_comp_df=pd.DataFrame(mi_data, index=index, columns=["Sand","Loam","Difference", "M-W-U p-value"])
+
+    compile_tex(year_comp_df.to_latex() + "\n" + soil_comp_df.to_latex())
+
 def main():
     willow_data = read_data()
     make_plots(willow_data)
     mannwhitneyu_test(willow_data)
+    calc_differences(willow_data)
 
 
 if __name__ == "__main__":

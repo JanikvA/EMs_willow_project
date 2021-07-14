@@ -1,3 +1,24 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex)
+ restricted \write18 enabled.
+entering extended mode
+(./plots/tables.tex
+LaTeX2e <2020-10-01> patch level 4
+L3 programming layer <2021-02-18>
+(/usr/share/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2020/04/10 v1.4m Standard LaTeX document class
+(/usr/share/texmf-dist/tex/latex/base/size11.clo))
+(/usr/share/texmf-dist/tex/latex/booktabs/booktabs.sty)
+(/usr/share/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def)
+No file tables.aux.
+
+Overfull \hbox (37.03004pt too wide) in paragraph at lines 18--34
+[][] 
+[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (plots/tables.aux) )
+(see the transcript file for additional information)</usr/share/texmf-dist/font
+s/type1/public/amsfonts/cm/cmr10.pfb>
+Output written on plots/tables.pdf (1 page, 19827 bytes).
+Transcript written on plots/tables.log.
+# Mann-Whitney-U test #
 p-value for ['2020']-sand-1-Diameter M-W-U test is below 0.05! (p_value=2.4e-02)
 p-value for ['2020']-sand-1-Height/Diameter M-W-U test is below 0.05! (p_value=6.8e-03)
 p-value for ['2020']-sand-4-Diameter M-W-U test is below 0.05! (p_value=1.2e-02)
