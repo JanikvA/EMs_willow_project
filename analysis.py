@@ -94,13 +94,14 @@ def make_scatter_plots(data):
 def make_box_plots(data):
     for variable in ["Height", "Diameter", "Height/Diameter"]:
         for years in [["2020"], ["2021"], ["2020", "2021"]]:
+            year_data=data[data["year"].isin(years)]
             for x_var in ["soiltype", "plot_id"]:
-                ordered = list(data[x_var].unique())
+                ordered = list(year_data[x_var].unique())
                 ordered.sort(key=lambda x: (x[:-1], x[-1]))
                 ax = sns.boxplot(
                     x=x_var,
                     y=variable,
-                    data=data[data["year"].isin(years)],
+                    data=year_data,
                     order=ordered,
                 )
                 ax.set_title("+".join(years))
@@ -108,6 +109,20 @@ def make_box_plots(data):
                     f"plots/boxplot_{x_var}_{'_'.join(years)}_{variable.replace('/','Over')}.png"
                 )
                 plt.close("all")
+                if len(years)>1:
+                    ax = sns.boxplot(
+                        x=x_var,
+                        y=variable,
+                        data=year_data,
+                        hue="year",
+                        order=ordered,
+                    )
+                    ax.set_title("+".join(years))
+                    plt.savefig(
+                        f"plots/boxplot_{x_var}_{'_'.join(years)}_combined_{variable.replace('/','Over')}.png"
+                    )
+                    plt.close("all")
+
 
 
 def make_p_value_norm_dist_plot(data):
@@ -142,12 +157,22 @@ def make_pie_charts(data):
         for s_type in ["loam", "sand"]:
             single_pie_chart(year_data[year_data["soiltype"]==s_type]["plot_id"], years, f"{s_type}_plot_id_"+"_".join(years))
 
+def lin_regression(data):
+    g = sns.lmplot(data=data, x="Height", y="Diameter", hue="soiltype", scatter_kws={"alpha":0.3}, truncate=False)
+    g.ax.set_title("2020+2021")
+    g.ax.set_xlim(50,300)
+    g.ax.set_ylim(0,2)
+    plt.tight_layout()
+    plt.savefig(f"plots/linear_regression.png")
+    plt.close("all")
+
 
 def make_plots(data):
     make_pie_charts(data)
-    # make_box_plots(data)
-    # make_p_value_norm_dist_plot(data)
-    # make_scatter_plots(data)
+    make_box_plots(data)
+    make_p_value_norm_dist_plot(data)
+    make_scatter_plots(data)
+    lin_regression(data)
 
 
 def mannwhitneyu_test(data):
