@@ -59,53 +59,37 @@ def read_data():
     return all_data
 
 
-def make_scatter_plot(data):
+def specific_scatter(data, category, years, prefix=""):
+    ordered = list(data[category].unique())
+    ordered.sort(key=lambda x: (x[:-1], x[-1]))
+    pp = sns.pairplot(
+        data,
+        hue=category,
+        diag_kws={"common_norm": False},
+        plot_kws={"alpha": 0.3},
+        hue_order=ordered,
+    )
+    pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
+    plt.gcf().suptitle("+".join(years))
+    plt.savefig(f"plots/{prefix}{category}_scatter_matrix_{'_'.join(years)}.png")
+    plt.close("all")
+
+
+def make_scatter_plots(data):
     for years in [["2020"], ["2021"], ["2020", "2021"]]:
-
-        ordered = list(data[data["year"].isin(years)]["soiltype"].unique())
-        ordered.sort(key=lambda x: (x[:-1], x[-1]))
-        pp = sns.pairplot(
-            data[data["year"].isin(years)],
-            hue="soiltype",
-            diag_kws={"common_norm": False},
-            plot_kws={"alpha": 0.3},
-            hue_order=ordered,
-        )
-        pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
-        plt.gcf().suptitle("+".join(years))
-        plt.savefig(f"plots/soiltype_scatter_matrix_{'_'.join(years)}.png")
-        plt.close("all")
-
+        year_data = data[data["year"].isin(years)]
+        specific_scatter(year_data, "soiltype", years)
         for s_type in ["sand", "loam"]:
-            soil_data=data[(data["year"].isin(years)) & (data["soiltype"] == s_type)]
-            ordered = list(soil_data["plot_id"].unique())
-            ordered.sort(key=lambda x: (x[:-1], x[-1]))
-            pp = sns.pairplot(
-                soil_data,
-                hue="plot_id",
-                diag_kws={"common_norm": False},
-                plot_kws={"alpha": 0.3},
-                hue_order=ordered,
+            specific_scatter(
+                year_data[year_data["soiltype"] == s_type],
+                "plot_id",
+                years,
+                s_type + "_",
             )
-            pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
-            plt.gcf().suptitle("+".join(years))
-            plt.savefig(f"plots/{s_type}_plot_scatter_matrix_{'_'.join(years)}.png")
-            plt.close("all")
-
-
-            ordered = list(soil_data["Clone"].unique())
-            ordered.sort(key=lambda x: (x[:-1], x[-1]))
-            pp = sns.pairplot(
-                soil_data,
-                hue="Clone",
-                diag_kws={"common_norm": False},
-                plot_kws={"alpha": 0.3},
-                hue_order=ordered,
+            specific_scatter(
+                year_data[year_data["soiltype"] == s_type], "Clone", years, s_type + "_"
             )
-            pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
-            plt.gcf().suptitle("+".join(years))
-            plt.savefig(f"plots/{s_type}_clone_scatter_matrix_{'_'.join(years)}.png")
-            plt.close("all")
+
 
 def make_box_plots(data):
     for variable in ["Height", "Diameter", "Height/Diameter"]:
@@ -149,7 +133,7 @@ def make_p_value_norm_dist_plot(data):
 def make_plots(data):
     make_box_plots(data)
     make_p_value_norm_dist_plot(data)
-    make_scatter_plot(data)
+    make_scatter_plots(data)
 
 
 def mannwhitneyu_test(data):
