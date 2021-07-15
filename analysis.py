@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from pandas.core.algorithms import value_counts
+from pandas.core.algorithms import quantile, value_counts
 import seaborn as sns
 import matplotlib.pyplot as plt
 import glob
@@ -35,7 +35,9 @@ def read_data():
             tmp_df["soiltype"] = soiltype
             tmp_df["plot_id"] = plot_id
             tmp_df["year"] = year
-            tmp_df["Diameter"]=tmp_df["Diameter"].replace(["<0.5", "<0,5", ">0.5", "0", "0,4"], 0.25)
+            tmp_df["Diameter"] = tmp_df["Diameter"].replace(
+                ["<0.5", "<0,5", ">0.5", "0", "0,4"], 0.25
+            )
             tmp_df["Diameter"] = tmp_df.apply(
                 lambda row: float(str(row["Diameter"]).replace(",", ".")), axis=1
             )
@@ -49,15 +51,16 @@ def read_data():
     all_data["Height/Diameter"] = all_data.apply(
         lambda row: row["Height"] / row["Diameter"], axis=1
     )
-    precise_data=all_data.copy()
-    precise_data=precise_data[precise_data["Diameter"]>=0.5]
+    precise_data = all_data.copy()
+    precise_data = precise_data[precise_data["Diameter"] >= 0.5]
     return all_data, precise_data
 
 
-class DataAnalyzer():
+class DataAnalyzer:
     def __init__(self, data, outdir):
-        self.data=data
-        self.outdir=outdir
+        self.data = data
+        self.outdir = outdir
+
 
 def specific_scatter(data, category, years, prefix=""):
     ordered = list(data[category].unique())
@@ -95,7 +98,7 @@ def make_scatter_plots(data):
 def make_box_plots(data):
     for variable in ["Height", "Diameter", "Height/Diameter"]:
         for years in [["2020"], ["2021"], ["2020", "2021"]]:
-            year_data=data[data["year"].isin(years)]
+            year_data = data[data["year"].isin(years)]
             for x_var in ["soiltype", "plot_id"]:
                 ordered = list(year_data[x_var].unique())
                 ordered.sort(key=lambda x: (x[:-1], x[-1]))
@@ -110,7 +113,7 @@ def make_box_plots(data):
                     f"plots/boxplot_{x_var}_{'_'.join(years)}_{variable.replace('/','Over')}.png"
                 )
                 plt.close("all")
-                if len(years)>1:
+                if len(years) > 1:
                     ax = sns.boxplot(
                         x=x_var,
                         y=variable,
@@ -144,53 +147,128 @@ def make_p_value_norm_dist_plot(data):
     plt.savefig("plots/p_values_norm_dist.png")
     plt.close("all")
 
+
 def combined_pie_chart(data, years, prefix):
     fig, ax = plt.subplots()
     size = 0.5
-    sand_plots=sorted([v for v in data[data["soiltype"]=="sand"]["plot_id"].unique()])
-    loam_plots=sorted([v for v in data[data["soiltype"]=="loam"]["plot_id"].unique()])
-    sand_values=[data[data["plot_id"]==v]["plot_id"].count() for v in sand_plots]
-    loam_values=[data[data["plot_id"]==v]["plot_id"].count() for v in loam_plots]
+    sand_plots = sorted(
+        [v for v in data[data["soiltype"] == "sand"]["plot_id"].unique()]
+    )
+    loam_plots = sorted(
+        [v for v in data[data["soiltype"] == "loam"]["plot_id"].unique()]
+    )
+    sand_values = [data[data["plot_id"] == v]["plot_id"].count() for v in sand_plots]
+    loam_values = [data[data["plot_id"] == v]["plot_id"].count() for v in loam_plots]
     vals = [sum(sand_values), sum(loam_values)]
     sand_cmap = plt.get_cmap("Oranges")
     loam_cmap = plt.get_cmap("Blues")
     inner_colors = [sand_cmap(150), loam_cmap(150)]
-    outer_colors = np.concatenate((sand_cmap([70, 90, 110, 130]),loam_cmap([90,110,130])))
-    inner_wedges, _, _ = ax.pie(vals, radius=1.0-size, colors=inner_colors,
-    textprops=dict(color="w", weight="bold") ,autopct=lambda pct: f"{pct:.1f}%\n({int(np.round(pct/100.*sum(vals),0))})")
-    outer_wedges, outer_text, outer_num_text = ax.pie(sand_values + loam_values, radius=1.0, colors=outer_colors,
-        wedgeprops=dict(width=size, edgecolor='w'), labels=[v.replace("loam","plot").replace("sand","plot") for v in sand_plots+loam_plots],
-    textprops=dict(color="w", weight="bold") ,autopct=lambda pct: f"{pct:.1f}%\n({int(np.round(pct/100.*sum(vals),0))})", pctdistance=0.8)
+    outer_colors = np.concatenate(
+        (sand_cmap([70, 90, 110, 130]), loam_cmap([90, 110, 130]))
+    )
+    inner_wedges, _, _ = ax.pie(
+        vals,
+        radius=1.0 - size,
+        colors=inner_colors,
+        textprops=dict(color="w", weight="bold"),
+        autopct=lambda pct: f"{pct:.1f}%\n({int(np.round(pct/100.*sum(vals),0))})",
+    )
+    outer_wedges, outer_text, outer_num_text = ax.pie(
+        sand_values + loam_values,
+        radius=1.0,
+        colors=outer_colors,
+        wedgeprops=dict(width=size, edgecolor="w"),
+        labels=[
+            v.replace("loam", "plot").replace("sand", "plot")
+            for v in sand_plots + loam_plots
+        ],
+        textprops=dict(color="w", weight="bold"),
+        autopct=lambda pct: f"{pct:.1f}%\n({int(np.round(pct/100.*sum(vals),0))})",
+        pctdistance=0.8,
+    )
     for t in outer_text:
-        t.update({"color":"black"})
+        t.update({"color": "black"})
     ax.set(aspect="equal", title="+".join(years))
     ax.legend(inner_wedges, ["Sand", "Loam"])
     plt.tight_layout()
     plt.savefig(f"plots/pie_combined_{prefix}{'_'.join(years)}.png")
     plt.close("all")
 
-def make_pie_charts(data,prefix=""):
+
+def make_pie_charts(data, prefix=""):
     for years in [["2020"], ["2021"], ["2020", "2021"]]:
         year_data = data[data["year"].isin(years)]
         combined_pie_chart(year_data, years, prefix=prefix)
 
 
 def lin_regression(data):
-    g = sns.lmplot(data=data, x="Height", y="Diameter", hue="soiltype", scatter_kws={"alpha":0.3}, truncate=False)
+    g = sns.lmplot(
+        data=data,
+        x="Height",
+        y="Diameter",
+        hue="soiltype",
+        scatter_kws={"alpha": 0.3},
+        truncate=False,
+    )
     g.ax.set_title("2020+2021")
-    g.ax.set_xlim(50,300)
-    g.ax.set_ylim(0,2)
+    g.ax.set_xlim(50, 300)
+    g.ax.set_ylim(0, 2)
     plt.tight_layout()
     plt.savefig(f"plots/linear_regression.png")
     plt.close("all")
 
 
-def make_plots(data):
-    make_pie_charts(data)
-    make_box_plots(data)
-    make_p_value_norm_dist_plot(data)
-    make_scatter_plots(data)
-    lin_regression(data)
+def make_rolling_median(data):
+    fig, ax = plt.subplots(2, 2)
+    for n, year in enumerate(["2020", "2021"]):
+        for m, soil in enumerate(["sand", "loam"]):
+            tmp_data = data[(data["soiltype"] == soil) & (data["year"] == year)]
+            sns.scatterplot(data=tmp_data, x="Height", y="Diameter", ax=ax[n, m])
+            x_medians = np.linspace(
+                tmp_data["Height"].min(), tmp_data["Height"].max(), 50
+            )
+            y_medians = []
+            for x in x_medians:
+                width = 40
+                y_medians.append(
+                    tmp_data[
+                        (tmp_data["Height"] > x - width)
+                        & (tmp_data["Height"] < x + width)
+                    ]["Diameter"].median()
+                )
+            ax[n, m].plot(x_medians, y_medians, color="r")
+            ax[n, m].set_title(f"{soil} {year}")
+    plt.tight_layout()
+    fig.savefig(f"plots/rolling_median.png")
+    plt.close("all")
+
+
+def make_quantile_median(data):
+    for variable in ["Height", "Diameter", "Height/Diameter"]:
+        for n, year in enumerate(["2020", "2021"]):
+            for m, soil in enumerate(["sand", "loam"]):
+                tmp_data = data[(data["soiltype"] == soil) & (data["year"] == year)]
+                data_series = tmp_data[variable]
+                qtiles = np.linspace(0, 1, 11)
+                quantiles = np.quantile(data_series, qtiles)
+                x = []
+                y = []
+                for n, q in enumerate(quantiles):
+                    if n == 0:
+                        continue
+                    x.append((qtiles[n] - qtiles[n - 1]) / 2 + qtiles[n - 1])
+                    y.append(
+                        data_series[
+                            (data_series > quantiles[n - 1]) & (data_series < q)
+                        ].median()
+                    )
+                sns.lineplot(x=x, y=y, label=f"{soil} ({year})")
+        plt.gca().set_xlabel("Quantile")
+        plt.gca().set_ylabel(f"Median {variable}")
+        plt.gca().legend()
+        plt.tight_layout()
+        plt.savefig(f"plots/quantile_{variable.replace('/','Over')}_plot.png")
+        plt.close("all")
 
 
 def mannwhitneyu_test(data):
@@ -255,43 +333,131 @@ def compile_tex(tex_body):
     os.system("pdflatex -output-directory=plots plots/tables.tex")
     os.system("rm plots/tables.aux plots/tables.log")
 
-def calc_differences(data):
-    variables=["Height", "Diameter", "Height/Diameter"]
-    soil_types=["loam", "sand"]
-    index=pd.MultiIndex.from_product([variables, soil_types], names=["Variable", "Soil"])
-    mi_data=[]
-    for variable in variables:
-        data20=data[data["year"]=="2020"]
-        data21=data[data["year"]=="2021"]
-        for s_type in soil_types:
-            val20=data20[data20["soiltype"]==s_type][variable]
-            val21=data21[data21["soiltype"]==s_type][variable]
-            u_value, p_value = mannwhitneyu(val20, val21)
-            tmp_data=[f"{val20.median():.1f}", f"{val21.median():.1f}", f"{val21.median()/val20.median()-1:+.1%}", f"{p_value:.1e}"]
-            mi_data.append(tmp_data)
-    year_comp_df=pd.DataFrame(mi_data, index=index, columns=["2020","2021","Change", "M-W-U p-value"])
 
-    variables=["Height", "Diameter", "Height/Diameter"]
-    years_list=[["2020"], ["2021"], ["2020", "2021"]]
-    index=pd.MultiIndex.from_product([variables, ["+".join(y) for y in years_list]], names=["Variable", "Years"])
-    mi_data=[]
+def calc_differences(data):
+    variables = ["Height", "Diameter", "Height/Diameter"]
+    soil_types = ["loam", "sand"]
+    index = pd.MultiIndex.from_product(
+        [variables, soil_types], names=["Variable", "Soil"]
+    )
+    mi_data = []
+    for variable in variables:
+        data20 = data[data["year"] == "2020"]
+        data21 = data[data["year"] == "2021"]
+        for s_type in soil_types:
+            val20 = data20[data20["soiltype"] == s_type][variable]
+            val21 = data21[data21["soiltype"] == s_type][variable]
+            u_value, p_value = mannwhitneyu(val20, val21)
+            tmp_data = [
+                f"{val20.median():.1f}",
+                f"{val21.median():.1f}",
+                f"{val21.median()/val20.median()-1:+.1%}",
+                f"{p_value:.1e}",
+            ]
+            mi_data.append(tmp_data)
+    year_comp_df = pd.DataFrame(
+        mi_data, index=index, columns=["2020", "2021", "Change", "M-W-U p-value"]
+    )
+
+    variables = ["Height", "Diameter", "Height/Diameter"]
+    years_list = [["2020"], ["2021"], ["2020", "2021"]]
+    index = pd.MultiIndex.from_product(
+        [variables, ["+".join(y) for y in years_list]], names=["Variable", "Years"]
+    )
+    mi_data = []
     for variable in variables:
         for years in years_list:
             tmp_datay = data[data["year"].isin(years)]
-            val_loam=tmp_datay[tmp_datay["soiltype"]=="loam"][variable]
-            val_sand=tmp_datay[tmp_datay["soiltype"]=="sand"][variable]
+            val_loam = tmp_datay[tmp_datay["soiltype"] == "loam"][variable]
+            val_sand = tmp_datay[tmp_datay["soiltype"] == "sand"][variable]
             u_value, p_value = mannwhitneyu(val_sand, val_loam)
-            tmp_data=[f"{val_sand.median():.1f}", f"{val_loam.median():.1f}", f"{val_loam.median()/val_sand.median()-1:+.1%}", f"{p_value:.1e}"]
+            tmp_data = [
+                f"{val_sand.median():.1f}",
+                f"{val_loam.median():.1f}",
+                f"{val_loam.median()/val_sand.median()-1:+.1%}",
+                f"{p_value:.1e}",
+            ]
             mi_data.append(tmp_data)
-    soil_comp_df=pd.DataFrame(mi_data, index=index, columns=["Sand","Loam","Difference", "M-W-U p-value"])
+    soil_comp_df = pd.DataFrame(
+        mi_data, index=index, columns=["Sand", "Loam", "Difference", "M-W-U p-value"]
+    )
 
     compile_tex(year_comp_df.to_latex() + "\n" + soil_comp_df.to_latex())
+
+
+def shifting_median(data):
+    print("# M-W-U test on shifted mean distributions")
+    shifted_data = {}
+    p_values = []
+    for variable in ["Height", "Diameter", "Height/Diameter"]:
+        shifted_data[variable] = {}
+        for n, year in enumerate(["2020", "2021"]):
+            for m, soil in enumerate(["sand", "loam"]):
+                shifted_data[variable][f"{soil}-{year}"] = data[
+                    (data["soiltype"] == soil) & (data["year"] == year)
+                ][variable]
+                shifted_data[variable][f"{soil}-{year}"] = (
+                    shifted_data[variable][f"{soil}-{year}"]
+                    - shifted_data[variable][f"{soil}-{year}"].median()
+                )
+        colors = ["r", "b", "orange", "green"]
+        for n, (l, d) in enumerate(shifted_data[variable].items()):
+            sns.histplot(
+                d, label=l, color=colors[n], alpha=0.3, stat="density", kde=True
+            )
+        plt.gca().set_xlabel(f"Shifted {variable}")
+        plt.gca().set_ylabel("Counts")
+        plt.gca().legend()
+        plt.tight_layout()
+        plt.savefig(f"plots/shifted_median_{variable.replace('/','Over')}_plot.png")
+        plt.close("all")
+        print(variable)
+        _, p_sand_years = mannwhitneyu(
+            shifted_data[variable]["sand-2020"], shifted_data[variable]["sand-2021"]
+        )
+        print(f"{p_sand_years=}")
+        p_values.append(p_sand_years)
+        _, p_loam_years = mannwhitneyu(
+            shifted_data[variable]["loam-2020"], shifted_data[variable]["loam-2021"]
+        )
+        print(f"{p_loam_years=}")
+        p_values.append(p_loam_years)
+        _, p_soil_2020 = mannwhitneyu(
+            shifted_data[variable]["sand-2020"], shifted_data[variable]["loam-2020"]
+        )
+        print(f"{p_soil_2020=}")
+        p_values.append(p_soil_2020)
+        _, p_soil_2021 = mannwhitneyu(
+            shifted_data[variable]["sand-2021"], shifted_data[variable]["loam-2021"]
+        )
+        print(f"{p_soil_2021=}")
+        p_values.append(p_soil_2021)
+
+    ax = sns.histplot(p_values, bins=np.linspace(0, 1, 21))
+    ax.set_xlabel("p-value")
+    ax.set_ylabel("Count of measurements")
+    ax.set_title("Mann Whiteny U test on shifted median")
+    plt.vlines([0.05], ymin=0, ymax=8, colors="r", label="0.05")
+    plt.savefig("plots/p_values_mann_whitney_dist_shifted_median.png")
+    plt.close("all")
+
+
+def make_plots(data):
+    make_pie_charts(data)
+    make_box_plots(data)
+    make_p_value_norm_dist_plot(data)
+    make_scatter_plots(data)
+    make_rolling_median(data)
+    make_quantile_median(data)
+    lin_regression(data)
+
 
 def main():
     all_data, precise_data = read_data()
     make_plots(all_data)
     mannwhitneyu_test(all_data)
     calc_differences(all_data)
+    shifting_median(all_data)
 
 
 if __name__ == "__main__":

@@ -42,3 +42,19 @@ Comparing between sand and loam - 2021 - Height/Diameter - Mann Whitney U test p
 Comparing between sand and loam - 2020+2021 - Height - Mann Whitney U test p_value=5.2e-13
 Comparing between sand and loam - 2020+2021 - Diameter - Mann Whitney U test p_value=1.8e-08
 Comparing between sand and loam - 2020+2021 - Height/Diameter - Mann Whitney U test p_value=2.4e-09
+# M-W-U test on shifted mean distributions
+Height
+p_sand_years=0.2337229076203664
+p_loam_years=0.8997373685281251
+p_soil_2020=0.07162797680836254
+p_soil_2021=0.17657089604537302
+Diameter
+p_sand_years=0.39483810425801136
+p_loam_years=0.6472969451504474
+p_soil_2020=0.248059597851648
+p_soil_2021=0.3621326527498522
+Height/Diameter
+p_sand_years=0.8581120924139427
+p_loam_years=0.6010927121796987
+p_soil_2020=0.7371604222609116
+p_soil_2021=0.9350383288793901
