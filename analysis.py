@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from pandas.core.algorithms import value_counts
 import seaborn as sns
 import matplotlib.pyplot as plt
 import glob
@@ -34,16 +35,7 @@ def read_data():
             tmp_df["soiltype"] = soiltype
             tmp_df["plot_id"] = plot_id
             tmp_df["year"] = year
-            tmp_df.drop(
-                tmp_df[
-                    (tmp_df["Diameter"] == "<0.5")
-                    | (tmp_df["Diameter"] == "<0,5")
-                    | (tmp_df["Diameter"] == ">0.5")
-                    | (tmp_df["Diameter"] == "0")
-                    | (tmp_df["Diameter"] == "0,4")
-                ].index,
-                inplace=True,
-            )
+            tmp_df["Diameter"]=tmp_df["Diameter"].replace(["<0.5", "<0,5", ">0.5", "0", "0,4"], 0.4999)
             tmp_df["Diameter"] = tmp_df.apply(
                 lambda row: float(str(row["Diameter"]).replace(",", ".")), axis=1
             )
@@ -52,13 +44,20 @@ def read_data():
             )
             tmp_df = tmp_df.astype({"Diameter": float, "Height": float})
             all_data = pd.concat([all_data, tmp_df])
+    all_data.dropna(inplace=True)
+    all_data.reset_index(inplace=True, drop=True)
     all_data["Height/Diameter"] = all_data.apply(
         lambda row: row["Height"] / row["Diameter"], axis=1
     )
-    all_data.dropna(inplace=True)
-    all_data.reset_index(inplace=True, drop=True)
-    return all_data
+    precise_data=all_data.copy()
+    precise_data=precise_data[precise_data["Diameter"]>=0.5]
+    return all_data, precise_data
 
+
+class DataAnalyzer():
+    def __init__(self, data, outdir):
+        self.data=data
+        self.outdir=outdir
 
 def specific_scatter(data, category, years, prefix=""):
     ordered = list(data[category].unique())
@@ -71,6 +70,7 @@ def specific_scatter(data, category, years, prefix=""):
         hue_order=ordered,
     )
     pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
+    pp.map_diag(sns.histplot, kde=True)
     plt.gcf().suptitle("+".join(years))
     plt.savefig(f"plots/{prefix}{category}_scatter_matrix_{'_'.join(years)}.png")
     plt.close("all")
@@ -125,7 +125,6 @@ def make_box_plots(data):
                     plt.close("all")
 
 
-
 def make_p_value_norm_dist_plot(data):
     p_values = []
     for variable in ["Height", "Diameter", "Height/Diameter"]:
@@ -145,18 +144,36 @@ def make_p_value_norm_dist_plot(data):
     plt.savefig("plots/p_values_norm_dist.png")
     plt.close("all")
 
-def single_pie_chart(data, years, prefix):
-    ax=data.value_counts().plot(kind="pie", autopct=lambda val: int(np.round(val/100.*data.value_counts().sum(),0)), ylabel="")
-    ax.set_title("+".join(years))
-    plt.savefig(f"plots/pie_{prefix}_{'_'.join(years)}.png")
+def combined_pie_chart(data, years, prefix):
+    fig, ax = plt.subplots()
+    size = 0.5
+    sand_plots=sorted([v for v in data[data["soiltype"]=="sand"]["plot_id"].unique()])
+    loam_plots=sorted([v for v in data[data["soiltype"]=="loam"]["plot_id"].unique()])
+    sand_values=[data[data["plot_id"]==v]["plot_id"].count() for v in sand_plots]
+    loam_values=[data[data["plot_id"]==v]["plot_id"].count() for v in loam_plots]
+    vals = [sum(sand_values), sum(loam_values)]
+    sand_cmap = plt.get_cmap("Oranges")
+    loam_cmap = plt.get_cmap("Blues")
+    inner_colors = [sand_cmap(150), loam_cmap(150)]
+    outer_colors = np.concatenate((sand_cmap([70, 90, 110, 130]),loam_cmap([90,110,130])))
+    inner_wedges, _, _ = ax.pie(vals, radius=1.0-size, colors=inner_colors,
+    textprops=dict(color="w", weight="bold") ,autopct=lambda pct: f"{pct:.1f}%\n({int(np.round(pct/100.*sum(vals),0))})")
+    outer_wedges, outer_text, outer_num_text = ax.pie(sand_values + loam_values, radius=1.0, colors=outer_colors,
+        wedgeprops=dict(width=size, edgecolor='w'), labels=[v.replace("loam","plot").replace("sand","plot") for v in sand_plots+loam_plots],
+    textprops=dict(color="w", weight="bold") ,autopct=lambda pct: f"{pct:.1f}%\n({int(np.round(pct/100.*sum(vals),0))})", pctdistance=0.8)
+    for t in outer_text:
+        t.update({"color":"black"})
+    ax.set(aspect="equal", title="+".join(years))
+    ax.legend(inner_wedges, ["Sand", "Loam"])
+    plt.tight_layout()
+    plt.savefig(f"plots/pie_combined_{prefix}{'_'.join(years)}.png")
     plt.close("all")
 
-def make_pie_charts(data):
+def make_pie_charts(data,prefix=""):
     for years in [["2020"], ["2021"], ["2020", "2021"]]:
         year_data = data[data["year"].isin(years)]
-        single_pie_chart(year_data["soiltype"], years, "soiltype_"+"_".join(years))
-        for s_type in ["loam", "sand"]:
-            single_pie_chart(year_data[year_data["soiltype"]==s_type]["plot_id"], years, f"{s_type}_plot_id_"+"_".join(years))
+        combined_pie_chart(year_data, years, prefix=prefix)
+
 
 def lin_regression(data):
     g = sns.lmplot(data=data, x="Height", y="Diameter", hue="soiltype", scatter_kws={"alpha":0.3}, truncate=False)
@@ -271,10 +288,10 @@ def calc_differences(data):
     compile_tex(year_comp_df.to_latex() + "\n" + soil_comp_df.to_latex())
 
 def main():
-    willow_data = read_data()
-    make_plots(willow_data)
-    mannwhitneyu_test(willow_data)
-    calc_differences(willow_data)
+    all_data, precise_data = read_data()
+    make_plots(all_data)
+    mannwhitneyu_test(all_data)
+    calc_differences(all_data)
 
 
 if __name__ == "__main__":
