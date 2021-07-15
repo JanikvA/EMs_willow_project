@@ -16,29 +16,29 @@ Overfull \hbox (37.03004pt too wide) in paragraph at lines 18--34
 [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (plots/tables.aux) )
 (see the transcript file for additional information)</usr/share/texmf-dist/font
 s/type1/public/amsfonts/cm/cmr10.pfb>
-Output written on plots/tables.pdf (1 page, 19834 bytes).
+Output written on plots/tables.pdf (1 page, 19838 bytes).
 Transcript written on plots/tables.log.
 # Mann-Whitney-U test #
 p-value for ['2020']-sand-1-Diameter M-W-U test is below 0.05! (p_value=2.0e-02)
-p-value for ['2020']-sand-4-Height/Diameter M-W-U test is below 0.05! (p_value=4.2e-02)
 p-value for ['2020']-loam-5-Height M-W-U test is below 0.05! (p_value=3.0e-02)
 p-value for ['2020']-loam-5-Diameter M-W-U test is below 0.05! (p_value=7.8e-03)
-p-value for ['2021']-sand-1-Height/Diameter M-W-U test is below 0.05! (p_value=4.4e-02)
+p-value for ['2021']-sand-1-Height/Diameter M-W-U test is below 0.05! (p_value=7.7e-03)
+p-value for ['2021']-sand-4-Height/Diameter M-W-U test is below 0.05! (p_value=3.2e-05)
 p-value for ['2021']-loam-1-Height M-W-U test is below 0.05! (p_value=3.0e-02)
 p-value for ['2021']-loam-1-Diameter M-W-U test is below 0.05! (p_value=2.9e-02)
 p-value for ['2021']-loam-5-Diameter M-W-U test is below 0.05! (p_value=3.8e-02)
 Comparing between 2020 and 2021 - sand - Height - Mann Whitney U test p_value=6.8e-05
 Comparing between 2020 and 2021 - sand - Diameter - Mann Whitney U test p_value=9.0e-03
-Comparing between 2020 and 2021 - sand - Height/Diameter - Mann Whitney U test p_value=1.3e-07
+Comparing between 2020 and 2021 - sand - Height/Diameter - Mann Whitney U test p_value=6.0e-07
 Comparing between 2020 and 2021 - loam - Height - Mann Whitney U test p_value=5.5e-04
 Comparing between 2020 and 2021 - loam - Diameter - Mann Whitney U test p_value=1.2e-02
-Comparing between 2020 and 2021 - loam - Height/Diameter - Mann Whitney U test p_value=7.2e-03
+Comparing between 2020 and 2021 - loam - Height/Diameter - Mann Whitney U test p_value=2.1e-03
 Comparing between sand and loam - 2020 - Height - Mann Whitney U test p_value=1.0e-06
 Comparing between sand and loam - 2020 - Diameter - Mann Whitney U test p_value=2.2e-04
-Comparing between sand and loam - 2020 - Height/Diameter - Mann Whitney U test p_value=9.4e-08
+Comparing between sand and loam - 2020 - Height/Diameter - Mann Whitney U test p_value=2.7e-05
 Comparing between sand and loam - 2021 - Height - Mann Whitney U test p_value=7.8e-08
 Comparing between sand and loam - 2021 - Diameter - Mann Whitney U test p_value=1.4e-05
-Comparing between sand and loam - 2021 - Height/Diameter - Mann Whitney U test p_value=1.9e-07
+Comparing between sand and loam - 2021 - Height/Diameter - Mann Whitney U test p_value=2.1e-05
 Comparing between sand and loam - 2020+2021 - Height - Mann Whitney U test p_value=5.2e-13
 Comparing between sand and loam - 2020+2021 - Diameter - Mann Whitney U test p_value=1.8e-08
-Comparing between sand and loam - 2020+2021 - Height/Diameter - Mann Whitney U test p_value=6.5e-14
+Comparing between sand and loam - 2020+2021 - Height/Diameter - Mann Whitney U test p_value=2.4e-09

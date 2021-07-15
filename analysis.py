@@ -35,7 +35,7 @@ def read_data():
             tmp_df["soiltype"] = soiltype
             tmp_df["plot_id"] = plot_id
             tmp_df["year"] = year
-            tmp_df["Diameter"]=tmp_df["Diameter"].replace(["<0.5", "<0,5", ">0.5", "0", "0,4"], 0.4999)
+            tmp_df["Diameter"]=tmp_df["Diameter"].replace(["<0.5", "<0,5", ">0.5", "0", "0,4"], 0.25)
             tmp_df["Diameter"] = tmp_df.apply(
                 lambda row: float(str(row["Diameter"]).replace(",", ".")), axis=1
             )
@@ -70,7 +70,7 @@ def specific_scatter(data, category, years, prefix=""):
         hue_order=ordered,
     )
     pp.map_lower(sns.kdeplot, levels=[0.35], common_norm=False)
-    pp.map_diag(sns.histplot, kde=True)
+    pp.map_diag(sns.histplot, kde=True, common_norm=False, stat="density")
     plt.gcf().suptitle("+".join(years))
     plt.savefig(f"plots/{prefix}{category}_scatter_matrix_{'_'.join(years)}.png")
     plt.close("all")
